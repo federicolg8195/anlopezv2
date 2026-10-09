@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anlopez.com.ar/sitemap.xml
