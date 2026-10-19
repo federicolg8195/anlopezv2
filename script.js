@@ -27,6 +27,26 @@
     });
   }
 
+  // Eventos de Google Analytics (si gtag no cargó, no hace nada)
+  function track(nombre, params) {
+    if (typeof window.gtag === "function") window.gtag("event", nombre, params || {});
+  }
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("a[href]") : null;
+    if (!a) return;
+    var href = a.getAttribute("href") || "";
+    var lugar = a.closest(".hero-card") ? "hero" : "contacto";
+
+    if (href.indexOf("https://wa.me/") === 0) {
+      track("click_whatsapp", { ubicacion: lugar });
+    } else if (href.indexOf("tel:") === 0) {
+      track("click_telefono", { numero: href.slice(4), ubicacion: lugar });
+    } else if (href.indexOf("mailto:") === 0) {
+      track("click_email", { ubicacion: lugar });
+    }
+  });
+
   // Formulario de contacto — se envía a Netlify Forms, que reenvía por email.
   var form = document.querySelector(".contact-form");
   if (form) {
@@ -58,6 +78,7 @@
       boton.disabled = true;
       aviso("Enviando…", null);
 
+      var area = form.elements["area"] ? form.elements["area"].value : "";
       var cuerpo = new URLSearchParams(new FormData(form)).toString();
 
       fetch("/", {
@@ -68,6 +89,7 @@
         .then(function (r) {
           if (!r.ok) throw new Error(r.status);
           aviso("¡Listo! Recibimos tu consulta y te vamos a responder a la brevedad.", "ok");
+          track("generate_lead", { formulario: "consultas", area: area || "sin_especificar" });
           form.reset();
         })
         .catch(function () {
